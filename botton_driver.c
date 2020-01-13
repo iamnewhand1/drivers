@@ -49,9 +49,20 @@ static int isPressed;//记录是否有按键操作，有1，无0
 static dev_t dev;
 static struct cdev btn_cdev;
 static struct class *cls;
+static struct btn_read(struct file *file,
+                       char __user *buf,
+                       size_t count,
+                       loff_t *ppos){
+//6.1判断按键是否有操作，如有操作，上报按键信息，如果没有进入休眠 
+
+
+
+
+
+}
 static struct file_operation btn_fops = {
     .owner = THIS_MODULE,
-    .read = btn_read
+    .read = btn_read //获取按键信息
 
 }
 
