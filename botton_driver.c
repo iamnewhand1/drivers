@@ -54,6 +54,8 @@ static struct btn_read(struct file *file,
                        size_t count,
                        loff_t *ppos){
 //6.1判断按键是否有操作，如有操作，上报按键信息，如果没有进入休眠 
+    wait_event_interruptible(btn_wq,isPressed);//第一个参数等待队列头，第二个参数按键操作
+//6.2上报按键信息    
 
 
 
@@ -67,6 +69,15 @@ static struct file_operation btn_fops = {
 }
 
 
+//7.中断处理函数
+static irqreturn_t button_isr(int irq,void *dev_id){
+//7.1通过dev_id获取按键对应的硬件信息
+    struct btn_resource *pdata =
+
+//7.2获取按键信息按下1
+
+
+}
 static int btn_init(){
     //4
     //4.1申请设备号
@@ -74,6 +85,7 @@ static int btn_init(){
     //4.3注册字符对象设备
     //4.4自动创建设备文件
     //4.5申请gpio资源和中断资源注册中断函数
+    //4.6初始化等待队列头
     return 0;
 
 
