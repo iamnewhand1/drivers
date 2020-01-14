@@ -33,7 +33,7 @@ static struct btn_resource btn_info[] = {
         .irq = 
         .gpio = 
         .name = 
-        .code = 
+        .code = 0x50
     },
 
     [1] = {
@@ -81,8 +81,17 @@ static irqreturn_t button_isr(int irq,void *dev_id){
 static int btn_init(){
     //4
     //4.1申请设备号
-    //4.2初始化字符设备对象
+	ret = alloc_chrdev_region(&vfio.group_devt, 0, MINORMASK, "bottondev");
+    if(ret)
+        goto err_botton_cdevadd
+
+
+    err_botton_cdevadd:
+        unregister_chrdev_region()
+
+    //4.2初始化字符设备对象 int cdev_add(struct cdev *, dev_t, unsigned);
     //4.3注册字符对象设备
+    cdev_add($btn_cdev,
     //4.4自动创建设备文件
     //4.5申请gpio资源和中断资源注册中断函数
     //4.6初始化等待队列头
