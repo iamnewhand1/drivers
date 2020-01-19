@@ -21,13 +21,12 @@ struct btn_resource {
     char *name;
     int code; //按键值
 }
-
-//定义上报按键的信息数据结构
-struct btn_event{
-    int code;
-    int state;//1表示按下，0表示松开
+    //定义上报按键数据结构
+struct btn_event {
+    int code;//上报按键值
+    int state；//上报按键状态1按下0松开
 }
-//分配初始化按键信息
+    //分配按键信息
 static struct btn_resource btn_info[] = {
     [0] = {
         .irq = 
@@ -35,54 +34,37 @@ static struct btn_resource btn_info[] = {
         .name = 
         .code = 0x50
     },
-
     [1] = {
         .irq = 
         .gpio = 
         .name = 
-        .code = 0x51 
+        .code = 0x51
     },
+
 }
 
-static struct btn_event g_btn;//记录操作信息，传用户空间
-static int isPressed;//记录是否有按键操作，有1，无0
+static struct btn_event g_btn;//记录按键信息
+static int isPressed;//记录按键是否有操作
 static dev_t dev;
-static struct cdev btn_cdev;
 static struct class *cls;
-static struct btn_read(struct file *file,
-                       char __user *buf,
-                       size_t count,
-                       loff_t *ppos){
-//6.1判断按键是否有操作，如有操作，上报按键信息，如果没有进入休眠 
-    wait_event_interruptible(btn_wq,isPressed);//第一个参数等待队列头，第二个参数按键操作
-//6.2上报按键信息    
-
-
-
-
-
-}
-static struct file_operation btn_fops = {
+static file_operations btn_fops = {
     .owner = THIS_MODULE,
-    .read = btn_read //获取按键信息
-
-}
-
-
-//7.中断处理函数
-static irqreturn_t button_isr(int irq,void *dev_id){
-//7.1通过dev_id获取按键对应的硬件信息
-    struct btn_resource *pdata =
-
-//7.2获取按键信息按下1
-
-
+    .read = btn_read//获取按键信息
 }
 static int btn_init(){
-    //4
+    int ret;
+    //4.4自动创建设备文件
+    cls = class_create(THIS_MODULE, "button");
+	if (IS_ERR(cls)) {
+		ret = PTR_ERR(cls);
+		goto err_class;
+	}
+
     //4.1申请设备号
-	ret = alloc_chrdev_region(&vfio.group_devt, 0, MINORMASK, "bottondev");
+	
+    ret = alloc_chrdev_region(&dev,0,1,"buttons")
     if(ret)
+<<<<<<< HEAD
         goto err_botton_cdevadd
 
 
@@ -95,10 +77,29 @@ static int btn_init(){
     //4.4自动创建设备文件
     cls = class_create(THIS_MODULE,"button");
     device_create(cls,NULL,dev,NULL,"button")
+=======
+        goto err_button_cdevadd
+    err_button_cdevadd:
+        unregister_chrdev_region(dev,MINORMASK)
+
+    //4.2初始化字符设备对象 
+    cdev_init(&btn_cdev,&btn_fops) 
+    //4.3注册字符对象设备int cdev_add(struct cdev *, dev_t, unsigned);
+    cdev_add(&btn_cdev,dev,1);
+>>>>>>> f440af3104134bc6ed7d43984a45cf5b2fb3ed1e
     //4.5申请gpio资源和中断资源注册中断函数
     //4.6初始化等待队列头
     return 0;
 
+err_cdev_add:
+	unregister_chrdev_region(vfio.group_devt, MINORMASK);
+err_alloc_chrdev:
+	class_destroy(vfio.class);
+	vfio.class = NULL;
+err_class:
+	misc_deregister(&vfio_dev);
+	return ret;
+}
 
 
 
