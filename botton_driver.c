@@ -91,8 +91,10 @@ static int btn_init(){
 
     //4.2初始化字符设备对象 int cdev_add(struct cdev *, dev_t, unsigned);
     //4.3注册字符对象设备
-    cdev_add($btn_cdev,
+    cdev_add($btn_cdev,dev,1)
     //4.4自动创建设备文件
+    cls = class_create(THIS_MODULE,"button");
+    device_create(cls,NULL,dev,NULL,"button")
     //4.5申请gpio资源和中断资源注册中断函数
     //4.6初始化等待队列头
     return 0;
@@ -103,11 +105,15 @@ static int btn_init(){
 }
 
 static int btn_exit(){
-
-
-
-
-
+    int i;
+    //5
+    device_destory(cls,dev);
+    class_destory(cls);
+    for(i=0,i<ARRAY_SIZE(btn_info),i++){
+        free_irq(btn_info[i].irq,&btn_info[i]);
+        gpio_free(btn_info[i].gpio);
+    }
+    cdev_del(&btn_cdev);
 
 }
 
